@@ -1,22 +1,28 @@
 pipeline {
 	agent any
 
+    environment {
+		DOCKERHUB_CREDENTIALS=credentials('alfredrozay')
+	}
+
 	stages {
 		stage("GitHub Checkout") {
 			steps {
-				echo "checking out of github..."
+				git branch: 'main', url: 'https://github.com/alfredrozay1/alfred-server.git'
 			}
 		}
 
 		stage("Docker Build") {
 			steps {
-				echo "building docker image..."
+				sh "docker image build -t alfredrozay/alfred ."
 			}
 		}
 
 		stage("Authenticate to DockerHub") {
 			steps {
 				echo 'Authenticating...'
+				sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+				echo 'Login complete...'
 			}
 		}
 
@@ -25,6 +31,13 @@ pipeline {
 				echo "pushing image to dockerhub"
 			}
 		}
+
+        stage("Logout") {
+			steps{
+				sh 'docker image rmi -f $(docker image ls -aq)'
+				sh 'docker logout'
+				echo 'Logout successful!'
+			}
 
 	}
 
