@@ -1,7 +1,7 @@
 pipeline {
 	agent any
 
-    environment {
+	environment {
 		DOCKERHUB_CREDENTIALS=credentials('alfredrozay')
 	}
 
@@ -14,7 +14,7 @@ pipeline {
 
 		stage("Docker Build") {
 			steps {
-				sh "docker image build -t alfredrozay/alfred ."
+				sh "docker image build -t alfredrozay/alfred-things ."
 			}
 		}
 
@@ -26,18 +26,22 @@ pipeline {
 			}
 		}
 
-		stage("Push to DockerHub") {
+		stage("Tag Image and Push to DockerHub") {
 			steps {
-				echo "pushing image to dockerhub"
+				echo 'tagging...'
+				sh "docker tag alfredrozay/alfred-things docker.io/alfredrozay/alfred-new-app:$BUILD_ID"
+				echo 'pushing...'
+				sh "docker push docker.io/alfredrozay/alfred-new-app:$BUILD_ID"
 			}
 		}
 
-        stage("Logout") {
+		stage("Logout") {
 			steps{
 				sh 'docker image rmi -f $(docker image ls -aq)'
 				sh 'docker logout'
 				echo 'Logout successful!'
 			}
+		}
 
 	}
 
